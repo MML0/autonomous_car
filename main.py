@@ -31,7 +31,7 @@ def correct_perspective(frame, src_points):
 
 
 
-cap = cv2.VideoCapture("10 min count up.mp4")
+cap = cv2.VideoCapture("challenge_video.mp4")
 
 if not cap.isOpened():
     print("Error: Cannot open video.")
