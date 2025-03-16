@@ -36,8 +36,8 @@ def fined_shaer_angel(img,src_points):
     max_j = 0
     best_angle = [0,0]
 
-    for i in range(lastrange_i[0],lastrange_i[1],2):
-      for j in range(lastrange_j[0],lastrange_j[1],2):
+    for i in range(lastrange_i[0],lastrange_i[1],1):
+      for j in range(lastrange_j[0],lastrange_j[1],1):
         h, w = img.shape[:2]
 
         # src_points[0][0] += i  # Adjust x-coordinate of first point
@@ -85,12 +85,12 @@ def fined_shaer_angel(img,src_points):
             max_j = peak_j
             best_angle[1] = j
 
-    lastrange_i = [best_angle[0]-4,best_angle[0]+4]
-    lastrange_j = [best_angle[1]-4,best_angle[1]+4]
+    lastrange_i = [best_angle[0]-2,best_angle[0]+2]
+    lastrange_j = [best_angle[1]-2,best_angle[1]+2]
     # Reset ranges if they exceed abs(20)
     if abs(lastrange_i[0]) > 30 or abs(lastrange_i[1]) > 30:
         lastrange_i = [-20, 20]
-    if abs(lastrange_j[0]) > 30 or abs(lastrange_j[1]) > 30:
+    if abs(lastrange_j[0]) >30 or abs(lastrange_j[1]) > 30:
         lastrange_j = [-20, 20]
 
     return best_angle
@@ -104,7 +104,8 @@ def crop_to_center(frame):
     return resized_frame
     
 
-cap = cv2.VideoCapture("challenge_video.mp4")
+# cap = cv2.VideoCapture("challenge_video.mp4")
+cap = cv2.VideoCapture("LaneVideo.mp4")
 
 if not cap.isOpened():
     print("Error: Cannot open video.")
@@ -123,9 +124,15 @@ while cap.isOpened():
     # frame = draw_overlay(frame)
     
     h, w = frame.shape[:2]
-    up_side = int(0.155*w)
-    offset = 0
-    h_side = 0.68
+    # chalenge video 1
+    # up_side = int(0.16*w)
+    # offset = 4
+    # h_side = 0.68
+    
+    # lane video 2
+    up_side = int(0.194*w)
+    offset = -4
+    h_side = 0.78
     src_points = np.array([
         [w//2 - up_side//2 +offset, (h_side*h)//1], [w//2 + up_side//2 + offset , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
     ], dtype=np.float32)
@@ -156,24 +163,14 @@ while cap.isOpened():
     # vertical_profile = np.convolve(vertical_profile, np.ones(7)/7, mode='same')
     # vertical_profile = np.abs(vertical_profile)
     
-    # Create a matplotlib figure for the vertical profile
-    plt.figure(figsize=(8, 4))
-    plt.plot(vertical_profile)
-    plt.title('Vertical Pixel Sum Profile')
-    plt.xlabel('Horizontal Position')
-    plt.ylabel('Sum of Pixel Values')
-    
-    # Convert matplotlib figure to OpenCV image
-    fig = plt.gcf()
-    fig.canvas.draw()
-    frame_level_4 = np.array(fig.canvas.renderer.buffer_rgba())
-    frame_level_4 = cv2.cvtColor(frame_level_4, cv2.COLOR_RGBA2BGR)
-    plt.close()
+
 
 
     angle = fined_shaer_angel(raw_frame,src_points)
-    print(angle)
+    print(angle,sum(angle))
 
+    end_time = time.time()
+    execution_time = end_time - tik
 
 
     i = angle[0]
@@ -185,6 +182,25 @@ while cap.isOpened():
     frame = correct_perspective(raw_frame, src_points)
 
     resized_frame = crop_to_center(frame)
+
+    vertical_profile_2 = np.sum(np.sum(resized_frame, axis=2), axis=0)
+
+    # Create a matplotlib figure for the vertical profile
+    plt.figure(figsize=(8, 4))
+    plt.plot(vertical_profile, label='Profile 1')
+    plt.plot(vertical_profile_2, label='Profile 2')
+    plt.title('Vertical Pixel Sum Profile')
+    plt.xlabel('Horizontal Position')
+    plt.ylabel('Sum of Pixel Values')
+    plt.legend()
+    
+    # Convert matplotlib figure to OpenCV image
+    fig = plt.gcf()
+    fig.canvas.draw()
+    frame_level_4 = np.array(fig.canvas.renderer.buffer_rgba())
+    frame_level_4 = cv2.cvtColor(frame_level_4, cv2.COLOR_RGBA2BGR)
+    plt.close()
+
 
     # cv2.imshow("Processed Video2", resized_frame)
     frame_level_3 = resized_frame.copy() 
@@ -225,7 +241,7 @@ while cap.isOpened():
     tok = time.time()
     elapsed_time = (tok - tik) * 1000  # Convert to milliseconds
     fps = 1000 / elapsed_time  # Calculate FPS
-    print(f"Time: {elapsed_time:.2f}ms, FPS: {fps:.2f}")
+    print(f"Time: {elapsed_time:.2f}ms, FPS: {fps:.2f} , real FPS: {1/execution_time:.4f} ")
 
 
 cap.release()
