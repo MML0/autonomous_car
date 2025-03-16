@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-def resize_with_aspect_ratio(frame, target_height=720):
+def resize_with_aspect_ratio(frame, target_height=360):
     h, w = frame.shape[:2]
     aspect_ratio = w / h
     new_width = int(target_height * aspect_ratio)
@@ -28,48 +28,80 @@ def correct_perspective(frame, src_points):
     matrix = cv2.getPerspectiveTransform(src_points, dst_points)
     return cv2.warpPerspective(frame, matrix, (w, h))
 
+lastrange_i = [-20,20]
+lastrange_j = [-20,20]
+def fined_shaer_angel(img,src_points):
+    global lastrange_i ,lastrange_j
+    max_i = 0
+    max_j = 0
+    best_angle = [0,0]
 
-def fined_shaer_angel(img):
-    max = 0
-    best_angle = 0
-    for i in range(-20,20,1):
+    for i in range(lastrange_i[0],lastrange_i[1],2):
+      for j in range(lastrange_j[0],lastrange_j[1],2):
         h, w = img.shape[:2]
-        a_up = 200
-        h_side = 0.7
+
+        # src_points[0][0] += i  # Adjust x-coordinate of first point
+        # src_points[1][0] += i  # Adjust x-coordinate of second point
+
+        # up_side = int(0.22*w)
+        # offset = 10
+        # h_side = 0.55
         src_points = np.array([
-            [w//4 + a_up + i, (h_side*h)//1], [3*w//4 - a_up +50 + i , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
+            [w//2 - up_side//2 +offset + i, (h_side*h)//1], [w//2 + up_side//2 + offset+ j , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
         ], dtype=np.float32)
-        
+    
+
 
         frame = correct_perspective(img, src_points)
 
-        h, w = frame.shape[:2]
-        resized_frame = cv2.resize(frame, (w//3, h//3))
-        h, w = resized_frame.shape[:2]
-        # Crop the middle 2/3 of the frame from all sides
-        h_crop = h//6  
-        w_crop = w//7  
-        resized_frame = resized_frame[h_crop:h-h_crop, w_crop:w-w_crop-10]
+        resized_frame = crop_to_center(frame)
 
-        vertical_profile = sum_pixels_vertically(resized_frame)
+        # vertical_profile = sum_pixels_vertically(resized_frame)
+        vertical_profile = np.sum(np.sum(resized_frame, axis=2), axis=0)
         # Calculate variance of vertical profile to measure "spikiness"
-        peak = np.max(vertical_profile)
+        peak_i = np.max(vertical_profile[:len(vertical_profile)//2-10]) 
+        peak_j = np.max(vertical_profile[len(vertical_profile)//2+10:])
+        # peak = np.var(vertical_profile[:])
         # print(peak)
-        if peak > max :
-            best_angle = i
-            max = peak
+
+        # vertical_profile = np.sum(np.sum(resized_frame, axis=2), axis=0)
+        # # Smooth the profile before taking derivative
+        # vertical_profile = np.convolve(vertical_profile, np.ones(2)/2, mode='same')
+        # # Take derivative and threshold to 4 or 0
+        # vertical_profile = np.diff(vertical_profile)
+        # vertical_profile = np.convolve(vertical_profile, np.ones(7)/7, mode='same')
+        # vertical_profile = np.abs(vertical_profile)
+    
+        # peak_i = np.sum(vertical_profile[20:len(vertical_profile)//2-20]) 
+        # peak_j = np.sum(vertical_profile[len(vertical_profile)//2+20:])
+        # # peak = np.var(vertical_profile[:])
+        # # print(peak)
+
+
+        if peak_i > max_i:
+            max_i = peak_i
+            best_angle[0] = i
+        if peak_j > max_j:
+            max_j = peak_j
+            best_angle[1] = j
+
+    lastrange_i = [best_angle[0]-4,best_angle[0]+4]
+    lastrange_j = [best_angle[1]-4,best_angle[1]+4]
+    # Reset ranges if they exceed abs(20)
+    if abs(lastrange_i[0]) > 30 or abs(lastrange_i[1]) > 30:
+        lastrange_i = [-20, 20]
+    if abs(lastrange_j[0]) > 30 or abs(lastrange_j[1]) > 30:
+        lastrange_j = [-20, 20]
+
     return best_angle
 
-
-def sum_pixels_vertically(img):
-    h, w = img.shape[:2]
-    vertical_sums = np.zeros(w)
-    
-    # Sum all pixel values (BGR) from top to bottom for each column
-    for x in range(w):
-        vertical_sums[x] = np.sum(img[:, x])
-        
-    return vertical_sums
+def crop_to_center(frame):
+    h, w = frame.shape[:2]
+    # Crop the middle 2/3 of the frame from all sides
+    h_crop = h//4
+    w_crop = w//6  
+    resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
+    return resized_frame
     
 
 cap = cv2.VideoCapture("challenge_video.mp4")
@@ -91,10 +123,11 @@ while cap.isOpened():
     # frame = draw_overlay(frame)
     
     h, w = frame.shape[:2]
-    a_up = 200
-    h_side = 0.7
+    up_side = int(0.155*w)
+    offset = 0
+    h_side = 0.68
     src_points = np.array([
-        [w//4 + a_up, (h_side*h)//1], [3*w//4 - a_up +50 , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
+        [w//2 - up_side//2 +offset, (h_side*h)//1], [w//2 + up_side//2 + offset , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
     ], dtype=np.float32)
     
     draw_trapezoid(frame, src_points)
@@ -108,17 +141,21 @@ while cap.isOpened():
     # Resize frame to half size
 
 
-    h, w = frame_level_2.shape[:2]
-    resized_frame = cv2.resize(frame_level_2, (w//2, h//2))
-    h, w = resized_frame.shape[:2]
-    # Crop the middle 2/3 of the frame from all sides
-    h_crop = h//6  
-    w_crop = w//7  
-    resized_frame = resized_frame[h_crop:h-h_crop, w_crop:w-w_crop-10]
+    resized_frame = crop_to_center(frame)
     # Get vertical sums array
     frame_level_3 = resized_frame.copy() 
 
-    vertical_profile = sum_pixels_vertically(resized_frame)
+    # vertical_profile = sum_pixels_vertically(resized_frame)
+    vertical_profile = np.sum(np.sum(resized_frame, axis=2), axis=0)
+    
+    
+    # # Smooth the profile before taking derivative
+    # vertical_profile = np.convolve(vertical_profile, np.ones(3)/3, mode='same')
+    # # Take derivative and threshold to 4 or 0
+    # vertical_profile = np.diff(vertical_profile)
+    # vertical_profile = np.convolve(vertical_profile, np.ones(7)/7, mode='same')
+    # vertical_profile = np.abs(vertical_profile)
+    
     # Create a matplotlib figure for the vertical profile
     plt.figure(figsize=(8, 4))
     plt.plot(vertical_profile)
@@ -134,8 +171,27 @@ while cap.isOpened():
     plt.close()
 
 
-    angle = fined_shaer_angel(raw_frame)
+    angle = fined_shaer_angel(raw_frame,src_points)
     print(angle)
+
+
+
+    i = angle[0]
+    j = angle[1] 
+    src_points = np.array([
+        [w//2 - up_side//2 +offset + i, (h_side*h)//1], [w//2 + up_side//2 + offset+ j , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
+    ], dtype=np.float32)
+    
+    frame = correct_perspective(raw_frame, src_points)
+
+    resized_frame = crop_to_center(frame)
+
+    # cv2.imshow("Processed Video2", resized_frame)
+    frame_level_3 = resized_frame.copy() 
+
+
+
+
     # frame_level_2 = correct_perspective(frame.copy(), src_points)  # Perspective corrected
     # frame_level_4 = cv2.cvtColor(frame_level_2, cv2.COLOR_BGR2GRAY)  # Grayscale of corrected
     # frame_level_4 = cv2.Canny(frame_level_3, 100, 200)  # Edge detection
@@ -143,7 +199,7 @@ while cap.isOpened():
 
 
 
-
+    
     # Resize all frames to 1/4 size
     h, w = frame.shape[:2]
     new_h, new_w = h//2, w//2
