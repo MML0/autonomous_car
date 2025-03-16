@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-def resize_with_aspect_ratio(frame, target_height=360):
+def resize_with_aspect_ratio(frame, target_height=250):
     h, w = frame.shape[:2]
     aspect_ratio = w / h
     new_width = int(target_height * aspect_ratio)
@@ -36,8 +36,8 @@ def fined_shaer_angel(img,src_points):
     max_j = 0
     best_angle = [0,0]
 
-    for i in range(lastrange_i[0],lastrange_i[1],1):
-      for j in range(lastrange_j[0],lastrange_j[1],1):
+    for i in range(lastrange_i[0],lastrange_i[1],2):
+      for j in range(lastrange_j[0],lastrange_j[1],2):
         h, w = img.shape[:2]
 
         # src_points[0][0] += i  # Adjust x-coordinate of first point
@@ -85,21 +85,24 @@ def fined_shaer_angel(img,src_points):
             max_j = peak_j
             best_angle[1] = j
 
-    lastrange_i = [best_angle[0]-2,best_angle[0]+2]
-    lastrange_j = [best_angle[1]-2,best_angle[1]+2]
-    # Reset ranges if they exceed abs(20)
-    if abs(lastrange_i[0]) > 30 or abs(lastrange_i[1]) > 30:
-        lastrange_i = [-20, 20]
-    if abs(lastrange_j[0]) >30 or abs(lastrange_j[1]) > 30:
-        lastrange_j = [-20, 20]
+    lastrange_i = [best_angle[0]-3,best_angle[0]+3]
+    lastrange_j = [best_angle[1]-3,best_angle[1]+3]
+    # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
+    # if abs(lastrange_i[0]) > 40 or abs(lastrange_i[1]) > 40:
+    #     lastrange_i = [-20, 20]
+    #     print('triger !!!')
+    # if abs(lastrange_j[0]) >40 or abs(lastrange_j[1]) > 40:
+    #     lastrange_j = [-20, 20]
+    #     print('triger !!!')
+
 
     return best_angle
 
 def crop_to_center(frame):
     h, w = frame.shape[:2]
     # Crop the middle 2/3 of the frame from all sides
-    h_crop = h//4
-    w_crop = w//6  
+    h_crop = 2*h//5
+    w_crop = 2*w//6  
     resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
     return resized_frame
     
@@ -203,7 +206,7 @@ while cap.isOpened():
 
 
     # cv2.imshow("Processed Video2", resized_frame)
-    frame_level_3 = resized_frame.copy() 
+    frame_level_5 = resized_frame.copy() 
 
 
 
@@ -211,9 +214,20 @@ while cap.isOpened():
     # frame_level_2 = correct_perspective(frame.copy(), src_points)  # Perspective corrected
     # frame_level_4 = cv2.cvtColor(frame_level_2, cv2.COLOR_BGR2GRAY)  # Grayscale of corrected
     # frame_level_4 = cv2.Canny(frame_level_3, 100, 200)  # Edge detection
+
+    frame_level_6 = frame_level_1.copy()
+    # Draw lines connecting lower and upper points with angle adjustments
+    # Left line
+    cv2.line(frame_level_6, 
+             (int(src_points[3][0]+10), int(src_points[3][1])),  # Bottom left point
+             (int(src_points[0][0]+angle[0]*5), int(src_points[0][1])),  # Top left point + angle[0] shift
+             (0, 255, 100), 5)  # Green color, 2px thickness
     
-
-
+    # Right line
+    cv2.line(frame_level_6,
+             (int(src_points[2][0]-10), int(src_points[2][1])),  # Bottom right point  
+             (int(src_points[1][0]+angle[1]*5), int(src_points[1][1])),  # Top right point + angle[1] shift
+             (0, 255, 100), 5)  # Green color, 2px thickness
 
     
     # Resize all frames to 1/4 size
@@ -223,10 +237,12 @@ while cap.isOpened():
     frame_level_2 = cv2.resize(frame_level_2, (new_w, new_h))
     frame_level_3 = cv2.resize(frame_level_3, (new_w, new_h))
     frame_level_4 = cv2.resize(frame_level_4, (new_w, new_h))
+    frame_level_5 = cv2.resize(frame_level_5, (new_w, new_h))
+    frame_level_6 = cv2.resize(frame_level_6, (new_w, new_h))
     
     # Combine frames into 2x2 grid
-    top_row = np.hstack((frame_level_1, frame_level_2))
-    bottom_row = np.hstack((frame_level_3, frame_level_4))
+    top_row = np.hstack((frame_level_1, frame_level_2,frame_level_3))
+    bottom_row = np.hstack((frame_level_4,frame_level_6, frame_level_5))
     combined_frame = np.vstack((top_row, bottom_row))
     
     # Replace the original frame with combined frame

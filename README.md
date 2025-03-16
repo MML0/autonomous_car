@@ -10,7 +10,7 @@ Welcome to the **FIRA Autonomous Car Race** repository! This project is dedicate
 - ⚙️ **Sensor Fusion & Data Processing**
 
 ## 📸 Screenshots
-![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/image.png "Project Screenshot")
+![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/screenshot2.png "Project Screenshot")
 
 ## 🔧 Installation
 ```bash
