@@ -45,12 +45,12 @@ python main.py
 - [GitHub Issues](https://github.com/yourusername/fira-autonomous-race/issues)
 
 ## ✍️ Contributors
-- **[Your Name](https://github.com/yourusername)**
+- **[MML](https://github.com/MML0)**
 
 ## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 📬 Contact
 For questions or suggestions, feel free to reach out:
-📧 Email: [your-email@example.com](mailto:your-email@example.com)
+📧 Email: [h1337124latl@gmail.com](mailto:h1337124lat@gmail.com)
 
