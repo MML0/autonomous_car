@@ -39,8 +39,8 @@ while cap.isOpened():
     h,w = frame.shape[:2]
     frame = frame[0:h//2,0:w//2]
 
-    angle = lane_detaction.process_frame(frame,debug_mode=True)
-    # angle = lane_detaction.process_frame(frame,debug_mode=False)
+    #angle = lane_detaction.process_frame(frame,debug_mode=True)
+    angle = lane_detaction.process_frame(frame,debug_mode=False)
     # print(angle,sum(angle))
 
     end_time = time.time()
@@ -49,7 +49,7 @@ while cap.isOpened():
 
     i = angle[0]
     j = angle[1] 
-    car.setSteering(i*0.8)
+    car.setSteering(i*0.7)
 
     # cv2.imshow("raw frame", frame)
     

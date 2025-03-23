@@ -12,8 +12,11 @@ Welcome to the **FIRA Autonomous Car Race** repository! This project is dedicate
 ## 📸 Screenshots
 ![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/screenshots/screenshot3.png "Project Screenshot")
 
-first test
+
 ![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/screenshots/screenshot4.png "Project Screenshot")
+
+first test
+![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/screenshots/tset_video_lowres.gif "Project video")
 
 ## 🔧 Installation
 ```bash
