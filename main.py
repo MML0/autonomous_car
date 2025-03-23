@@ -14,7 +14,7 @@ car = avisengine.Car()
 # Connecting to the server (Simulator)
 car.connect(config.SIMULATOR_IP, config.SIMULATOR_PORT)
 
-car.setSpeed(30)
+car.setSpeed(80)
 
 
 # cap = cv2.VideoCapture("challenge_video.mp4")
@@ -49,7 +49,7 @@ while cap.isOpened():
 
     i = angle[0]
     j = angle[1] 
-    car.setSteering(i)
+    car.setSteering(i*0.8)
 
     # cv2.imshow("raw frame", frame)
     
