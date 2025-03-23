@@ -28,19 +28,17 @@ def correct_perspective(frame, src_points):
     matrix = cv2.getPerspectiveTransform(src_points, dst_points)
     return cv2.warpPerspective(frame, matrix, (w, h))
 
-lastrange_i = [-20,20]
-lastrange_j = [-20,20]
-def fined_shaer_angel(frame,src_points):
-    
-
+lastrange_i = [-10,10]
+lastrange_j = [-10,10]
+def fined_shaer_angel(img,src_points):
     global lastrange_i ,lastrange_j 
+
     max_i = 0
     max_j = 0
     best_angle = [0,0]
-
-    for i in range(lastrange_i[0],lastrange_i[1],2):
-      for j in range(lastrange_j[0],lastrange_j[1],2):
-        h, w = frame.shape[:2]
+    for i in range(lastrange_i[0],lastrange_i[1],1):
+      for j in range(lastrange_j[0],lastrange_j[1],1):
+        h, w = img.shape[:2]
 
         # src_points[0][0] += i  # Adjust x-coordinate of first point
         # src_points[1][0] += i  # Adjust x-coordinate of second point
@@ -54,7 +52,7 @@ def fined_shaer_angel(frame,src_points):
     
 
 
-        frame = correct_perspective(frame, src_points)
+        frame = correct_perspective(img, src_points)
 
         resized_frame = crop_to_center(frame)
 
@@ -91,7 +89,7 @@ def fined_shaer_angel(frame,src_points):
     lastrange_j = [best_angle[1]-3,best_angle[1]+3]
 
     # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
-    max_range_triger = w//8
+    max_range_triger = w//4
     if abs(lastrange_i[0]) > max_range_triger or abs(lastrange_i[1]) > max_range_triger:
         lastrange_i = [-10, 10]
         print('triger !!!',max_range_triger)
@@ -106,7 +104,7 @@ def fined_shaer_angel(frame,src_points):
 def crop_to_center(frame):
     h, w = frame.shape[:2]
     # Crop the middle 2/3 of the frame from all sides
-    h_crop = 3*h//7
+    h_crop = 2*h//5
     w_crop = 2*w//6  
     resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
     return resized_frame
@@ -134,8 +132,14 @@ def process_frame(frame,debug_mode=True):
     ], dtype=np.float32)
     
 
+
+    angle = fined_shaer_angel(raw_frame,src_points)
+    print(angle,sum(angle))
+
+    end_time = time.time()
+    execution_time = end_time - tik
+
     if not debug_mode:
-        angle = fined_shaer_angel(raw_frame,src_points)
         return angle
 
 
@@ -166,13 +170,6 @@ def process_frame(frame,debug_mode=True):
     # vertical_profile = np.abs(vertical_profile)
     
 
-
-
-    angle = fined_shaer_angel(raw_frame,src_points)
-    print(angle,sum(angle))
-
-    end_time = time.time()
-    execution_time = end_time - tik
 
 
     i = angle[0]
