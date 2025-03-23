@@ -3,6 +3,10 @@ import struct
 import threading
 import time
 
+# simiulation
+import avisengine
+import config
+
 class Car:
     def __init__(self, ip: str, port: int = 12345):
         """
