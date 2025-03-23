@@ -1,4 +1,4 @@
-from controler import Car
+from wifi_controler import Car
 
 
 my_car = Car("192.168.1.100", 10)

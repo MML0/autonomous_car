@@ -73,5 +73,6 @@ if __name__ == "__main__":
     car = Car("192.168.1.100", 12345)
 
     while True:
-        car.send_command(50, -50, 100)  # Example command
+        car.send_control(50, -50, 100)  # Example command
         time.sleep(1)
+        print(12)

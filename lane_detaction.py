@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-def resize_with_aspect_ratio(frame, target_height=250):
+def resize_with_aspect_ratio(frame, target_height=360):
     h, w = frame.shape[:2]
     aspect_ratio = w / h
     new_width = int(target_height * aspect_ratio)
@@ -101,8 +101,8 @@ def fined_shaer_angel(img,src_points):
 def crop_to_center(frame):
     h, w = frame.shape[:2]
     # Crop the middle 2/3 of the frame from all sides
-    h_crop = 2*h//5
-    w_crop = 2*w//6  
+    h_crop = 1*h//5
+    w_crop = 1*w//6  
     resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
     return resized_frame
     
@@ -115,7 +115,8 @@ if not cap.isOpened():
     quit()
 
 def process_frame(frame,debug_mode=True):
-       
+    tik = time.time()
+
     global up_side ,h_side ,offset
     frame = resize_with_aspect_ratio(frame)
     raw_frame = frame.copy()
@@ -138,7 +139,6 @@ def process_frame(frame,debug_mode=True):
 
     if not debug_mode:
         angle = fined_shaer_angel(raw_frame,src_points)
-        print(angle,sum(angle))
         return angle
 
 
