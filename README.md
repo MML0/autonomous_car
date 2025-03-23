@@ -11,6 +11,8 @@ Welcome to the **FIRA Autonomous Car Race** repository! This project is dedicate
 
 ## 📸 Screenshots
 ![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/screenshots/screenshot3.png "Project Screenshot")
+
+first test
 ![Project Image](https://raw.githubusercontent.com/MML0/autonomous_car/refs/heads/main/screenshots/screenshot4.png "Project Screenshot")
 
 ## 🔧 Installation
@@ -34,8 +36,8 @@ python main.py
 ## 📂 Project Structure
 ```
 📁 fira-autonomous-race/
-├── 📂 src/        # Source code
-├── 📂 models/     # Trained models
+├── 📂 esp32/        # esp code
+├── 📂 screenshots/    
 ├── 📂 data/       # Dataset & logs
 ├── 📄 README.md   # Documentation
 └── 📄 requirements.txt  # Dependencies
@@ -47,6 +49,7 @@ python main.py
 
 ## ✍️ Contributors
 - **[MML](https://github.com/MML0)**
+- ...
 
 ## 📜 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
