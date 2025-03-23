@@ -1,9 +1,6 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
-const char *ssid = "ESP32_Hotspot";
-const char *password = "12345678";
-
 const char* ssid = "ESP32_Car";   // Hotspot name
 const char* password = "12345678"; // Password (8+ chars required)
 
