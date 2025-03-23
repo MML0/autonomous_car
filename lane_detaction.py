@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-def resize_with_aspect_ratio(frame, target_height=360):
+def resize_with_aspect_ratio(frame, target_height=300):
     h, w = frame.shape[:2]
     aspect_ratio = w / h
     new_width = int(target_height * aspect_ratio)
@@ -20,6 +20,26 @@ def draw_trapezoid(frame, src_points):
     cv2.polylines(frame, [pts], isClosed=True, color=(0, 0, 255), thickness=2)
 
 def correct_perspective(frame, src_points):
+    
+    # Create mask for outside regions
+    mask = np.zeros(frame.shape[:2], dtype=np.uint8)
+    
+    # Create points for left and right polygons
+    h, w = frame.shape[:2]
+    left_poly = np.array([[0,0], [0,h], 
+                         [src_points[3][0],src_points[3][1]], [src_points[0][0],src_points[0][1]]], dtype=np.int32)
+    right_poly = np.array([[w,0], [src_points[1][0],src_points[1][1]], 
+                          [src_points[2][0],src_points[2][1]], [w,h]], dtype=np.int32)
+    
+    # Fill the polygons with white (255)
+    cv2.fillPoly(mask, [left_poly], 255)
+    cv2.fillPoly(mask, [right_poly], 255)
+    
+    # Apply black to frame using mask
+    frame[mask == 255] = [0, 0, 0]
+    
+
+
     h, w = frame.shape[:2]
     dst_points = np.array([
         [100, 100], [w-100, 100], [w-100, h-100], [100, h-100]
@@ -36,8 +56,8 @@ def fined_shaer_angel(img,src_points):
     max_i = 0
     max_j = 0
     best_angle = [0,0]
-    for i in range(lastrange_i[0],lastrange_i[1],1):
-      for j in range(lastrange_j[0],lastrange_j[1],1):
+    for i in range(lastrange_i[0],lastrange_i[1],2):
+      for j in range(lastrange_j[0],lastrange_j[1],2):
         h, w = img.shape[:2]
 
         # src_points[0][0] += i  # Adjust x-coordinate of first point
@@ -104,8 +124,8 @@ def fined_shaer_angel(img,src_points):
 def crop_to_center(frame):
     h, w = frame.shape[:2]
     # Crop the middle 2/3 of the frame from all sides
-    h_crop = 2*h//5
-    w_crop = 2*w//6  
+    h_crop = int(h*0.3)
+    w_crop = int(w*0.3)
     resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
     return resized_frame
 
