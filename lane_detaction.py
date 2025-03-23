@@ -114,9 +114,9 @@ if not cap.isOpened():
     print("Error: Cannot open video.")
     quit()
 
-def process_frame(frame):
+def process_frame(frame,debug_mode=True):
        
-    
+    global up_side ,h_side ,offset
     frame = resize_with_aspect_ratio(frame)
     raw_frame = frame.copy()
     # frame = draw_overlay(frame)
@@ -135,6 +135,13 @@ def process_frame(frame):
         [w//2 - up_side//2 +offset, (h_side*h)//1], [w//2 + up_side//2 + offset , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
     ], dtype=np.float32)
     
+
+    if not debug_mode:
+        angle = fined_shaer_angel(raw_frame,src_points)
+        print(angle,sum(angle))
+        return angle
+
+
     draw_trapezoid(frame, src_points)
 
     # Create frames for different processing levels
@@ -256,152 +263,15 @@ def process_frame(frame):
     return angle
 
 if __name__ == "__main__":
-  while cap.isOpened():
-    tik = time.time()
+    while cap.isOpened():
+        tik = time.time()
 
-    ret, frame = cap.read()
-    if not ret:
-        break
-    
-    
-    frame = resize_with_aspect_ratio(frame)
-    raw_frame = frame.copy()
-    # frame = draw_overlay(frame)
-    
-    h, w = frame.shape[:2]
-    # chalenge video 1
-    # up_side = int(0.16*w)
-    # offset = 4
-    # h_side = 0.68
-    
-    # lane video 2
-    up_side = int(0.194*w)
-    offset = -4
-    h_side = 0.78
-    src_points = np.array([
-        [w//2 - up_side//2 +offset, (h_side*h)//1], [w//2 + up_side//2 + offset , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
-    ], dtype=np.float32)
-    
-    draw_trapezoid(frame, src_points)
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        angle = process_frame(frame,debug_mode=True)
 
-    # Create frames for different processing levels
-    frame_level_1 = frame.copy()  # Original with overlay and trapezoid
-
-    frame = correct_perspective(frame, src_points)
-
-    frame_level_2 = frame.copy() 
-    # Resize frame to half size
-
-
-    resized_frame = crop_to_center(frame)
-    # Get vertical sums array
-    frame_level_3 = resized_frame.copy() 
-
-    # vertical_profile = sum_pixels_vertically(resized_frame)
-    vertical_profile = np.sum(np.sum(resized_frame, axis=2), axis=0)
-    
-    
-    # # Smooth the profile before taking derivative
-    # vertical_profile = np.convolve(vertical_profile, np.ones(3)/3, mode='same')
-    # # Take derivative and threshold to 4 or 0
-    # vertical_profile = np.diff(vertical_profile)
-    # vertical_profile = np.convolve(vertical_profile, np.ones(7)/7, mode='same')
-    # vertical_profile = np.abs(vertical_profile)
-    
-
-
-
-    angle = fined_shaer_angel(raw_frame,src_points)
-    print(angle,sum(angle))
-
-    end_time = time.time()
-    execution_time = end_time - tik
-
-
-    i = angle[0]
-    j = angle[1] 
-    src_points = np.array([
-        [w//2 - up_side//2 +offset + i, (h_side*h)//1], [w//2 + up_side//2 + offset+ j , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
-    ], dtype=np.float32)
-    
-    frame = correct_perspective(raw_frame, src_points)
-
-    resized_frame = crop_to_center(frame)
-
-    vertical_profile_2 = np.sum(np.sum(resized_frame, axis=2), axis=0)
-
-    # Create a matplotlib figure for the vertical profile
-    plt.figure(figsize=(8, 4))
-    plt.plot(vertical_profile, label='Profile 1')
-    plt.plot(vertical_profile_2, label='Profile 2')
-    plt.title('Vertical Pixel Sum Profile')
-    plt.xlabel('Horizontal Position')
-    plt.ylabel('Sum of Pixel Values')
-    plt.legend()
-    
-    # Convert matplotlib figure to OpenCV image
-    fig = plt.gcf()
-    fig.canvas.draw()
-    frame_level_4 = np.array(fig.canvas.renderer.buffer_rgba())
-    frame_level_4 = cv2.cvtColor(frame_level_4, cv2.COLOR_RGBA2BGR)
-    plt.close()
-
-
-    # cv2.imshow("Processed Video2", resized_frame)
-    frame_level_5 = resized_frame.copy() 
-
-
-
-
-    # frame_level_2 = correct_perspective(frame.copy(), src_points)  # Perspective corrected
-    # frame_level_4 = cv2.cvtColor(frame_level_2, cv2.COLOR_BGR2GRAY)  # Grayscale of corrected
-    # frame_level_4 = cv2.Canny(frame_level_3, 100, 200)  # Edge detection
-
-    frame_level_6 = frame_level_1.copy()
-    # Draw lines connecting lower and upper points with angle adjustments
-    # Left line
-    cv2.line(frame_level_6, 
-             (int(src_points[3][0]+10), int(src_points[3][1])),  # Bottom left point
-             (int(src_points[0][0]+angle[0]*5), int(src_points[0][1])),  # Top left point + angle[0] shift
-             (0, 255, 100), 5)  # Green color, 2px thickness
-    
-    # Right line
-    cv2.line(frame_level_6,
-             (int(src_points[2][0]-10), int(src_points[2][1])),  # Bottom right point  
-             (int(src_points[1][0]+angle[1]*5), int(src_points[1][1])),  # Top right point + angle[1] shift
-             (0, 255, 100), 5)  # Green color, 2px thickness
-
-    
-    # Resize all frames to 1/4 size
-    h, w = frame.shape[:2]
-    new_h, new_w = h//2, w//2
-    frame_level_1 = cv2.resize(frame_level_1, (new_w, new_h))
-    frame_level_2 = cv2.resize(frame_level_2, (new_w, new_h))
-    frame_level_3 = cv2.resize(frame_level_3, (new_w, new_h))
-    frame_level_4 = cv2.resize(frame_level_4, (new_w, new_h))
-    frame_level_5 = cv2.resize(frame_level_5, (new_w, new_h))
-    frame_level_6 = cv2.resize(frame_level_6, (new_w, new_h))
-    
-    # Combine frames into 2x2 grid
-    top_row = np.hstack((frame_level_1, frame_level_2,frame_level_3))
-    bottom_row = np.hstack((frame_level_4,frame_level_6, frame_level_5))
-    combined_frame = np.vstack((top_row, bottom_row))
-    
-    # Replace the original frame with combined frame
-    frame = combined_frame
-    # cv2.imshow("Processed Video", frame)
-    
-    cv2.imshow("Processed Video", frame)
-    
-    if cv2.waitKey(25) & 0xFF == ord('q'):
-        break
-    
-    tok = time.time()
-    elapsed_time = (tok - tik) * 1000  # Convert to milliseconds
-    fps = 1000 / elapsed_time  # Calculate FPS
-    print(f"Time: {elapsed_time:.2f}ms, FPS: {fps:.2f} , real FPS: {1/execution_time:.4f} ")
-
-
-  cap.release()
-  cv2.destroyAllWindows()
+    cap.release()
+    cv2.destroyAllWindows()
 
