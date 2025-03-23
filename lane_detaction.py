@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-def resize_with_aspect_ratio(frame, target_height=300):
+def resize_with_aspect_ratio(frame, target_height=250):
     h, w = frame.shape[:2]
     aspect_ratio = w / h
     new_width = int(target_height * aspect_ratio)
@@ -50,25 +50,26 @@ def correct_perspective(frame, src_points):
 
 lastrange_i = [-10,10]
 lastrange_j = [-10,10]
-def fined_shaer_angel(img,src_points):
+def fined_shaer_angel2(img,src_points):
     global lastrange_i ,lastrange_j 
-
+    src_points_ref = src_points.copy()
     max_i = 0
     max_j = 0
     best_angle = [0,0]
     for i in range(lastrange_i[0],lastrange_i[1],2):
       for j in range(lastrange_j[0],lastrange_j[1],2):
         h, w = img.shape[:2]
+        src_points = src_points_ref.copy()
 
-        # src_points[0][0] += i  # Adjust x-coordinate of first point
-        # src_points[1][0] += i  # Adjust x-coordinate of second point
+        src_points[0][0] += i  # Adjust x-coordinate of first point
+        src_points[1][0] += j  # Adjust x-coordinate of second point
 
         # up_side = int(0.22*w)
         # offset = 10
         # h_side = 0.55
-        src_points = np.array([
-            [w//2 - up_side//2 +offset + i, (h_side*h)//1], [w//2 + up_side//2 + offset+ j , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
-        ], dtype=np.float32)
+        # src_points = np.array([
+        #     [w//2 - up_side//2 +offset + i, (h_side*h)//1], [w//2 + up_side//2 + offset+ j , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
+        # ], dtype=np.float32)
     
 
 
@@ -109,7 +110,7 @@ def fined_shaer_angel(img,src_points):
     lastrange_j = [best_angle[1]-3,best_angle[1]+3]
 
     # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
-    max_range_triger = w//4
+    max_range_triger = w//5
     if abs(lastrange_i[0]) > max_range_triger or abs(lastrange_i[1]) > max_range_triger:
         lastrange_i = [-10, 10]
         print('triger !!!',max_range_triger)
@@ -120,13 +121,51 @@ def fined_shaer_angel(img,src_points):
 
 
     return best_angle
+def fined_shaer_angel(img,src_points):
+    global lastrange_i ,lastrange_j 
+    src_points_ref = src_points.copy()
+    max_i = 0
+    best_angle = 0
+    for i in range(lastrange_i[0],lastrange_i[1],3):
+        h, w = img.shape[:2]
+        src_points = src_points_ref.copy()
+
+        src_points[0][0] += i  # Adjust x-coordinate of first point
+        src_points[1][0] += i  # Adjust x-coordinate of second point
+
+        frame = correct_perspective(img, src_points)
+
+        resized_frame = crop_to_center(frame)
+
+        # vertical_profile = sum_pixels_vertically(resized_frame)
+        vertical_profile = np.sum(np.sum(resized_frame, axis=2), axis=0)
+        # Calculate variance of vertical profile to measure "spikiness"
+        peak = np.max(vertical_profile[:])
+        # print(peak)
+
+
+        if peak > max_i:
+            max_i = peak
+            best_angle = i
+        
+    lastrange_i = [best_angle-15,best_angle+15]
+
+    # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
+    max_range_triger = w//5
+    if abs(lastrange_i[0]) > max_range_triger or abs(lastrange_i[1]) > max_range_triger:
+        lastrange_i = [-10, 10]
+        print('triger !!!',max_range_triger)
+
+
+
+    return [best_angle,best_angle]
 
 def crop_to_center(frame):
     h, w = frame.shape[:2]
     # Crop the middle 2/3 of the frame from all sides
-    h_crop = int(h*0.3)
-    w_crop = int(w*0.3)
-    resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
+    h_crop = int(h*0.25)
+    w_crop = int(w*0.25)
+    resized_frame = frame[h_crop:h-h_crop, w_crop:w-w_crop]
     return resized_frame
 
 def process_frame(frame,debug_mode=True):
@@ -144,12 +183,41 @@ def process_frame(frame,debug_mode=True):
     # h_side = 0.68
     
     # lane video 2
-    up_side = int(0.194*w)
-    offset = -4
-    h_side = 0.78
+    # up_side = int(0.194*w)
+    # offset = -4
+    # h_side = 0.78
+    # src_points = np.array([
+    #     [w//2 - up_side//2 +offset, (h_side*h)//1], [w//2 + up_side//2 + offset , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
+    # ], dtype=np.float32)
+    
+    # sim calibration - use global variables for trackbar values
+    global calibration_values
+    try:
+        up_side = int((calibration_values['up_side']/100) * w)
+        h_side = int((calibration_values['h_side']/100) * h)
+        down_side = int((calibration_values['down_side']/100) * w)
+        offset = calibration_values['offset'] - 50
+    except NameError:
+        # Initialize default values and create window only once
+        calibration_values = {
+            'up_side': 30,
+            'h_side': 70,
+            'down_side': 80,
+            'offset': 50
+        }
+        cv2.namedWindow('Calibration')
+        for key, value in calibration_values.items():
+            cv2.createTrackbar(key, 'Calibration', value, 100, 
+                lambda x, k=key: calibration_values.update({k: x}))
+        up_side = int(0.3 * w)
+        h_side = int(0.7 * h)
+        down_side = int(0.8 * w)
+        offset = 0
+
     src_points = np.array([
-        [w//2 - up_side//2 +offset, (h_side*h)//1], [w//2 + up_side//2 + offset , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
+        [w//2 - up_side//2 +offset, h_side], [w//2 + up_side//2 + offset , h_side], [w//2+down_side//2, h-10], [w//2-down_side//2, h-10]  # Example trapezoid points
     ], dtype=np.float32)
+    src_points_ref = src_points.copy()
     
 
 
@@ -194,10 +262,11 @@ def process_frame(frame,debug_mode=True):
 
     i = angle[0]
     j = angle[1] 
-    src_points = np.array([
-        [w//2 - up_side//2 +offset + i, (h_side*h)//1], [w//2 + up_side//2 + offset+ j , (h_side*h)//1], [w-10, h-10], [10, h-10]  # Example trapezoid points
-    ], dtype=np.float32)
     
+    src_points = src_points_ref.copy()
+    src_points[0][0] += i  # Adjust x-coordinate of first point
+    src_points[1][0] += j  # Adjust x-coordinate of second point
+
     frame = correct_perspective(raw_frame, src_points)
 
     resized_frame = crop_to_center(frame)
