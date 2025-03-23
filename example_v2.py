@@ -16,7 +16,7 @@ car.connect(config.SIMULATOR_IP, config.SIMULATOR_PORT)
 # Counter variable
 counter = 0
 
-debug_mode = False
+debug_mode = True
 
 # Sleep for 3 seconds to make sure that client connected to the simulator 
 time.sleep(3)
@@ -70,7 +70,7 @@ try:
             if cv2.waitKey(10) == ord('q'):
                 break
 
-            time.sleep(0.001)
+            time.sleep(0.01)
 
 finally:
     car.stop()

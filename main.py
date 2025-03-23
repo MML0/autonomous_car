@@ -3,8 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import lane_detaction
-# Use screen capture instead of video file
+# Use screen capture instead of video file for simiulation
 from PIL import ImageGrab
+import avisengine
+import config
+
+# Creating an instance of the Car class
+car = avisengine.Car()
+
+# Connecting to the server (Simulator)
+car.connect(config.SIMULATOR_IP, config.SIMULATOR_PORT)
+
+car.setSpeed(30)
+
 
 # cap = cv2.VideoCapture("challenge_video.mp4")
 cap = cv2.VideoCapture("LaneVideo.mp4")
@@ -38,6 +49,7 @@ while cap.isOpened():
 
     i = angle[0]
     j = angle[1] 
+    car.setSteering(i)
 
     # cv2.imshow("raw frame", frame)
     
