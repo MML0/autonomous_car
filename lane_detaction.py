@@ -30,15 +30,17 @@ def correct_perspective(frame, src_points):
 
 lastrange_i = [-20,20]
 lastrange_j = [-20,20]
-def fined_shaer_angel(img,src_points):
-    global lastrange_i ,lastrange_j
+def fined_shaer_angel(frame,src_points):
+    
+
+    global lastrange_i ,lastrange_j 
     max_i = 0
     max_j = 0
     best_angle = [0,0]
 
     for i in range(lastrange_i[0],lastrange_i[1],2):
       for j in range(lastrange_j[0],lastrange_j[1],2):
-        h, w = img.shape[:2]
+        h, w = frame.shape[:2]
 
         # src_points[0][0] += i  # Adjust x-coordinate of first point
         # src_points[1][0] += i  # Adjust x-coordinate of second point
@@ -52,7 +54,7 @@ def fined_shaer_angel(img,src_points):
     
 
 
-        frame = correct_perspective(img, src_points)
+        frame = correct_perspective(frame, src_points)
 
         resized_frame = crop_to_center(frame)
 
@@ -87,13 +89,16 @@ def fined_shaer_angel(img,src_points):
 
     lastrange_i = [best_angle[0]-3,best_angle[0]+3]
     lastrange_j = [best_angle[1]-3,best_angle[1]+3]
+
     # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
-    if abs(lastrange_i[0]) > 40 or abs(lastrange_i[1]) > 40:
-        lastrange_i = [-20, 20]
-        print('triger !!!')
-    if abs(lastrange_j[0]) >40 or abs(lastrange_j[1]) > 40:
-        lastrange_j = [-20, 20]
-        print('triger !!!')
+    max_range_triger = w//8
+    if abs(lastrange_i[0]) > max_range_triger or abs(lastrange_i[1]) > max_range_triger:
+        lastrange_i = [-10, 10]
+        print('triger !!!',max_range_triger)
+    if abs(lastrange_j[0]) >max_range_triger or abs(lastrange_j[1]) > max_range_triger:
+        lastrange_j = [-10, 10]
+        print('triger !!!',max_range_triger)
+
 
 
     return best_angle
@@ -101,18 +106,10 @@ def fined_shaer_angel(img,src_points):
 def crop_to_center(frame):
     h, w = frame.shape[:2]
     # Crop the middle 2/3 of the frame from all sides
-    h_crop = 2*h//7
-    w_crop = 1*w//6  
+    h_crop = 3*h//7
+    w_crop = 2*w//6  
     resized_frame = frame[h_crop+10:h-h_crop, w_crop+5:w-w_crop-5]
     return resized_frame
-    
-
-# cap = cv2.VideoCapture("challenge_video.mp4")
-cap = cv2.VideoCapture("LaneVideo.mp4")
-
-if not cap.isOpened():
-    print("Error: Cannot open video.")
-    quit()
 
 def process_frame(frame,debug_mode=True):
     tik = time.time()
@@ -263,6 +260,15 @@ def process_frame(frame,debug_mode=True):
     return angle
 
 if __name__ == "__main__":
+        
+
+    # cap = cv2.VideoCapture("challenge_video.mp4")
+    cap = cv2.VideoCapture("LaneVideo.mp4")
+
+    if not cap.isOpened():
+        print("Error: Cannot open video.")
+        quit()
+
     while cap.isOpened():
         tik = time.time()
 
