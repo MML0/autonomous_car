@@ -45,14 +45,15 @@ class Controller:
 
 if __name__ == "__main__":
     # Create an instance of the controller
-    controller = Controller("Test Controller", debug_mode=True, k_p=1, k_i=0.1, k_d=0.1)
+    controller = Controller("Test Controller", debug_mode=True, k_p=0.5, k_i=0.1, k_d=0.001)
 
     # Simulate a process with a fixed setpoint and measurements
     setpoint = 10
     measurement = 5
-    for i in range(50):  # Run for 50 time steps
-        measurement += (controller.calculate(setpoint, measurement) - measurement) * 0.1  # Simulate system dynamics
-        time.sleep(0.1)  # Simulate delay
+    for i in range(100):  # Run for 50 time steps
+        # measurement += (controller.calculate(setpoint, measurement) - measurement) * 0.1  # Simulate system dynamics
+        measurement += controller.calculate(setpoint, measurement)  # Simulate system dynamics
+        time.sleep(0.01)  # Simulate delay
 
     # Keep the plot open at the end
     plt.ioff()
