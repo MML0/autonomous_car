@@ -20,6 +20,7 @@ car = avisengine.Car()
 # cap = cv2.VideoCapture("challenge_video.mp4")
 # cap = cv2.VideoCapture("LaneVideo.mp4")
 cap = cv2.VideoCapture("avis0.mp4")
+# cap = cv2.VideoCapture("avis1.mp4")
 
 if not cap.isOpened():
     print("Error: Cannot open video.")
@@ -53,7 +54,7 @@ while cap.isOpened():
     j = angle[1] 
     # car.setSteering(i*0.7)
 
-    cv2.imshow("raw frame", frame)
+    # cv2.imshow("raw frame", frame)
     
     if cv2.waitKey(25) & 0xFF == ord('q'):
         break
@@ -61,7 +62,7 @@ while cap.isOpened():
     tok = time.time()
     elapsed_time = (tok - tik) * 1000  # Convert to milliseconds
     fps = 1000 / elapsed_time  # Calculate FPS
-    print(f"Time: {elapsed_time:.2f}ms, FPS: {fps:.2f} ")
+    # print(f"Time: {elapsed_time:.2f}ms, FPS: {fps:.2f} ")
 
 
 cap.release()

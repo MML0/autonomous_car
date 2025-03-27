@@ -126,7 +126,7 @@ def fined_shaer_angel(img,src_points):
     src_points_ref = src_points.copy()
     max_i = 0
     best_angle = 0
-    for i in range(lastrange_i[0],lastrange_i[1],3):
+    for i in range(lastrange_i[0],lastrange_i[1],5):
         h, w = img.shape[:2]
         src_points = src_points_ref.copy()
 
@@ -148,13 +148,13 @@ def fined_shaer_angel(img,src_points):
             max_i = peak
             best_angle = i
         
-    lastrange_i = [best_angle-10,best_angle+10]
+    lastrange_i = [best_angle-15,best_angle+15]
 
     # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
     max_range_triger = w//5
     if abs(lastrange_i[0]) > max_range_triger or abs(lastrange_i[1]) > max_range_triger:
         lastrange_i = [-10, 10]
-        print('triger !!!',max_range_triger)
+        print(max_range_triger,'triger !!!-----')
 
 
 
