@@ -148,7 +148,7 @@ def fined_shaer_angel(img,src_points):
             max_i = peak
             best_angle = i
         
-    lastrange_i = [best_angle-15,best_angle+15]
+    lastrange_i = [best_angle-10,best_angle+10]
 
     # Reset ranges if they exceed abs(20) we dont need it i think insted detekt suden changes in roud angle
     max_range_triger = w//5
